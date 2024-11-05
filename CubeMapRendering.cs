@@ -4,6 +4,9 @@ using EduGraf.Geometries;
 using EduGraf.Lighting;
 using EduGraf.Shapes;
 using EduGraf.Tensors;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace Cubemap;
 
@@ -23,14 +26,25 @@ public class CubeMapRendering : Rendering
         ]);
     }
 
-    private static VisualPart GetCube(Graphic graphic, Camera camera)
+    private VisualPart GetCube(Graphic graphic, Camera camera)
     {
-        var color = new Color4(0.8f, 1, 0.8f, 1);
-        var shading = graphic.CreateShading([], [new EmissiveUniformMaterial(color)], camera);
+        // Create Texture from image
+        using var image = Image.Load<Rgba32>("assets/CanyonCubeMap.jpeg");
+        var texture = Graphic.CreateTexture(image);
+        var material = new ColorTextureMaterial(1f, 1f, texture);
+        
+        
+        // Create cube object
+        Console.WriteLine("BING BONG");
+        var shading = graphic.CreateShading("crazymofo", material, [new AmbientLight(new Color3(1f, 1f, 1f))]);
+        Console.WriteLine("MAMA");
         var positions = Cube.Positions;
         var triangles = Cube.Triangles;
-        var geometry = Geometry.Create(positions, triangles);
+        
+        var textureUvs = Sphere.GetTextureUvs(600, 800);
+        var geometry = Geometry.CreateWithUv(positions, textureUvs, triangles);
         var surface = graphic.CreateSurface(shading, geometry);
+        Console.WriteLine("BABABA");
         return graphic.CreateVisual("cube", surface);
     }
 }
