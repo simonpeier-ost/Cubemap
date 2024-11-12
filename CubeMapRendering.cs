@@ -31,7 +31,7 @@ public class CubeMapRendering : Rendering
         using var imageTop = Image.Load<Rgba32>("assets/FieldCubeMap/FieldTop.png");
         imageTop.Mutate(context => context.Flip(FlipMode.Horizontal));
         using var imageBottom = Image.Load<Rgba32>("assets/FieldCubeMap/FieldBottom.png");
-        imageBottom.Mutate(context => context.Flip(FlipMode.Vertical).Flip(FlipMode.Horizontal));
+        imageBottom.Mutate(context => context.Flip(FlipMode.Vertical));
 
         Face[] faces = getFacesOfCube(Cube.Positions, Cube.Triangles);
         var faceFront = GetFace(graphic, imageLeft, faces[0], "left");
@@ -88,6 +88,14 @@ public class CubeMapRendering : Rendering
                     1.0f, 1.0f,
                     0.0f, 1.0f,
                     0.0f, 0.0f
+                };
+            } else if(name == "bottom"){
+                textureUvs = new float[]
+                {
+                    0.0f, 1.0f,
+                    0.0f, 0.0f,
+                    1.0f, 0.0f,
+                    1.0f, 1.0f
                 };
             }
             var geometry = Geometry.CreateWithUv(positions, positions, textureUvs, triangles);
