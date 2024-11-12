@@ -16,7 +16,7 @@ public class CubeMapRendering : Rendering
     public CubeMapRendering(Graphic graphic, Camera camera) : base(graphic, new Color3(0, 0, 0))
     {
         var cube = GetCube(graphic, camera);
-        var cubePosition = new Point3(0, Scale, 0);
+        var cubePosition = new Point3(0, 0, 0);
         Scene.AddRange(
         [
             cube
