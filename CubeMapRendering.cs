@@ -6,7 +6,6 @@ using EduGraf.Shapes;
 using EduGraf.Tensors;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 namespace Cubemap;
 
@@ -22,7 +21,7 @@ public class CubeMapRendering : Rendering
         [
             cube
                 .Scale(Scale)
-                .Translate(cubePosition.Vector),
+                .Translate(cubePosition.Vector)
         ]);
     }
 
@@ -33,18 +32,16 @@ public class CubeMapRendering : Rendering
         var texture = Graphic.CreateTexture(image);
         var material = new ColorTextureMaterial(1f, 1f, texture);
         
+        // Create cube shading
+        var shading = graphic.CreateShading("emissive", material, [new AmbientLight(new Color3(1f, 1f, 1f))]);
         
-        // Create cube object
-        Console.WriteLine("BING BONG");
-        var shading = graphic.CreateShading("crazymofo", material, [new AmbientLight(new Color3(1f, 1f, 1f))]);
-        Console.WriteLine("MAMA");
+        // Set up cube geometry
         var positions = Cube.Positions;
         var triangles = Cube.Triangles;
-        
-        var textureUvs = Sphere.GetTextureUvs(600, 800);
+        var textureUvs = Cube.TextureUv;
         var geometry = Geometry.CreateWithUv(positions, textureUvs, triangles);
+        
         var surface = graphic.CreateSurface(shading, geometry);
-        Console.WriteLine("BABABA");
         return graphic.CreateVisual("cube", surface);
     }
 }
