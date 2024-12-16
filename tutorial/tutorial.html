@@ -8,12 +8,12 @@
 <body>
 <main>
     <article>
-        <h1>EduGraf Tutorial: Cubemap Environment Mapping</h1>
+        <h1><sem-text>EduGraf</sem-text> Tutorial: Cubemap Environment Mapping</h1>
         <h2>Resources</h2>
         <ul>
-            <li><a href="assets/CanyonCubeMap.jpeg">Cubemap image of Canyon</a></li>
-            <li><a href="assets/FieldCubeMap.jpeg">Cubemap image of Field</a></li>
-            <li><a href="assets">Path to extracted images</a></li>
+            <li><a href="../assets/CanyonCubeMap.jpeg">Cubemap image of Canyon</a></li>
+            <li><a href="../assets/FieldCubeMap.jpeg">Cubemap image of Field</a></li>
+            <li><a href="../assets">Path to extracted images</a></li>
         </ul>
 
         <h2>Introduction</h2>
@@ -24,7 +24,9 @@
 
         <h2>Create a Cubemap</h2>
         <section>We start by creating a new Rendering. In the constructor, the first step is loading the images. Make
-            sure you have downloaded them. in this example we use the FieldMap (images under /assets/FieldCubeMap/...):
+            sure you have downloaded them. in this example we use the FieldMap (images under /assets/FieldCubeMap/...).
+            The loading of the front image is already implemented. Your task is to implement loading the rest of the images. Note, that you might have to
+            flip and/or rotate the images:
         </section>
         <code>
             public class CubeMapRendering : Rendering
@@ -37,22 +39,14 @@
                     // Load images
                     using var imageFront = Image.Load&lt;Rgba32>("assets/" + _imageName + "CubeMap/" + _imageName + "Front.png");
                     imageFront.Mutate(context => context.Flip(FlipMode.Vertical));
-                    using var imageBack = Image.Load&lt;Rgba32>("assets/" + _imageName + "CubeMap/" + _imageName + "Back.png");
-                    imageBack.Mutate(context => context.Flip(FlipMode.Vertical));
-                    using var imageLeft = Image.Load&lt;Rgba32>("assets/" + _imageName + "CubeMap/" + _imageName + "Left.png");
-                    imageLeft.Mutate(context => context.Flip(FlipMode.Vertical));
-                    using var imageRight = Image.Load&lt;Rgba32>("assets/" + _imageName + "CubeMap/" + _imageName + "Right.png");
-                    imageRight.Mutate(context => context.Flip(FlipMode.Vertical));
-                    using var imageTop = Image.Load&lt;Rgba32>("assets/" + _imageName + "CubeMap/" + _imageName + "Top.png");
-                    imageTop.Mutate(context => context.Flip(FlipMode.Horizontal));
-                    using var imageBottom = Image.Load&lt;Rgba32>("assets/" + _imageName + "CubeMap/" + _imageName + "Bottom.png");
-                    imageBottom.Mutate(context => context.Flip(FlipMode.Vertical));
+                    // TODO: Load the remaining five images
                 }
             }
 
         </code>
-        <section>We create the cube by making the six faces separately and positioning them accordingly in space. To do
-            so, we first need to create a class to represent one Face:
+        <section>Next we create the cube by making the six faces separately and positioning them accordingly in space. To do
+            so, we first need to create a class to represent one Face. The TextureUV represents the vertices of the Face.
+            For them, we use the default order also used in the EduGraf Cube:
         </section>
         <code>
             private class Face
@@ -76,11 +70,19 @@
             }
 
         </code>
-        <section>Then we split up the Cube into six separate Faces:</section>
+        <section>Now we can extract the Faces out of the Cube Element. For each face we
+            <ul>
+                <li>Extract the positions (x,y,z) of each of the four vertices (4*3=12).</li>
+                <li>Extract the triangles. A Face consists of two triangles, each having three points (2*3=6).</li>
+            </ul>
+        </section>
         <code>
-            private Face[] GetFacesOfCube(float[] positions, ushort[] triangles)
+            private Face[] GetFacesOfCube()
             {
+                var positions = Cube.Positions;
+                var triangles = Cube.Triangles;
                 Face[] faces = new Face[6];
+            
                 for (int faceIndex = 0; faceIndex < 6; faceIndex++)
                 {
                     float[] facePositions = new float[12];
@@ -104,49 +106,25 @@
 
         </code>
         <section>Now that we have six plain Faces, we need to map the textures onto it correctly. For this we create a
-            function GetFace. It is important that it exposes the texture, such that the Sphere can later reflect it.
-            First we create the texture and shading using the provided image. Next we create the Face geometry using the
-            parameters provided by the given face. Finally, we create a Surface (and then a Visual) using the geometry
-            and shading and return a Visual.
+            method GetFace. It is important that it exposes the texture, such that the Sphere can later reflect it. To 
+            do so we add an <a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/out">out 
+                parameter</a> to the method.
+        </section>
+        <section>First we create the texture and shading using the provided image. Then we create the Face geometry using the
+            parameters provided by the given face. Finally, we create a Visual using the geometry and shading and return a Visual.
         </section>
         <code>
             private VisualPart GetFace(Graphic graphic, Image&lt;Rgba32> image, Face face, String name, out GlTextureHandle texture)
             {
                 // Create Texture
                 texture = (GlTextureHandle)Graphic.CreateTexture(image);
-                var material = new ColorTextureMaterial(1f, 1f, texture);
                 // Create face shading
+                var material = new ColorTextureMaterial(1f, 1f, texture);
                 var shading = graphic.CreateShading("emissive", material, [new AmbientLight(new Color3(1f, 1f, 1f))]);
-        
-                // Set up face geometry
-                var positions = face.Positions;
-                var triangles = face.Triangles;
-                var textureUvs = face.TextureUv;
-                if (name == "top")
-                {
-                    textureUvs =
-                    [
-                        1.0f, 0.0f,
-                        1.0f, 1.0f,
-                        0.0f, 1.0f,
-                        0.0f, 0.0f
-                    ];
-                }
-                else if (name == "bottom")
-                {
-                    textureUvs =
-                    [
-                        0.0f, 1.0f,
-                        0.0f, 0.0f,
-                        1.0f, 0.0f,
-                        1.0f, 1.0f
-                    ];
-                }
-        
-                var geometry = Geometry.CreateWithUv(positions, positions, textureUvs, triangles);
             
-                var surface = graphic.CreateSurface(shading, geometry);
-                var visual = graphic.CreateVisual(name, surface);
+                var positions = face.Positions;
+                var geometry = Geometry.CreateWithUv(positions, positions, face.TextureUv, face.Triangles);
+                var visual = graphic.CreateVisual(name, graphic.CreateSurface(shading, geometry));
                 return visual;
             }
         </code>
@@ -206,27 +184,42 @@
                 }
             }
         </code>
-        
-        <h2>Create sphere with reflection shading</h2>
-        <section>Now we are ready to create the sphere. For that we first need to create the Shader</section>
+
+        <h2>Create a reflecting sphere using shaders</h2>
+        <section>Now we are ready to create the sphere. For that we first need to create the Shader.
+            Every shader consists of a VERTEX_SHADER and a FRAGMENT_SHADER. The VERTEX_SHADER in this case only provides us with the
+            gl_Position which is utilised by the underlying shader and not by us directly and the surfacePosition which we need for
+            our calculations in the FRAGMENT_SHADER.
+        </section>
         <code>
             public class ReflectionShading : GlShading
             {
-            private const string VERTEX_SHADER = @"
-            #version 410
-
-            in vec3 Position;
-
-            uniform mat4 Model;
-            uniform mat4 View;
-            uniform mat4 Projection;
-            out vec3 surfacePosition;
-
-            void main(void)
-            {
-            gl_Position = vec4(Position, 1.0) * Model * View * Projection;
-            surfacePosition = vec3(vec4(Position, 1.0) * Model);
-            }";
+                private const string VERTEX_SHADER = @"
+                #version 410
+    
+                in vec3 Position;
+    
+                uniform mat4 Model;
+                uniform mat4 View;
+                uniform mat4 Projection;
+                out vec3 surfacePosition;
+    
+                void main(void)
+                {
+                    gl_Position = vec4(Position, 1.0) * Model * View * Projection;
+                    surfacePosition = vec3(vec4(Position, 1.0) * Model);
+                }";
+        </code>
+        <section>In the same file we will create the FRAGMENT_SHADER which will calculate where in the skybox to lookup the texture.
+            First we require the surfacePosition from the VERTEX_SHADER by creating an in vec3. The CameraPosition is provided by default.
+            To calculate the reflection vector we utilise the reflect function and provide it with the vector from the camera to the surfacePosition
+            and the normal vector on that exact position.
+        </section>
+        <img src="./images/LightReflection.png" alt="Reflection of light." width="600px">
+        <section>Lastly we need to subtract the surfacePositions separate coordinates and divide through the reflected vectors, here shown on the z axis
+            leading to the value of 't'
+        </section>
+        <code>
             private const string FRAGMENT_SHADER = @"
             #version 330
 
@@ -234,80 +227,72 @@
 
             uniform vec3 CameraPosition;
             uniform float scale;
-            uniform sampler2D right;
-            uniform sampler2D left;
-            uniform sampler2D top;
-            uniform sampler2D bottom;
             uniform sampler2D front;
             uniform sampler2D back;
             out vec4 FragColor;
 
             void main()
             {
-            vec3 incident = normalize(surfacePosition - CameraPosition);
-            vec3 reflected = reflect(incident, normalize(surfacePosition));
-            float t = (scale - surfacePosition.z) / reflected.z;
-            float f = (scale - surfacePosition.x) / reflected.x;
-            float g = (scale - surfacePosition.y) / reflected.y;
-            FragColor = vec4(0, 0, 0, 0);
-            if (t > 0) {
-            vec2 uv = 0.5 * (surfacePosition.xy + t * reflected.xy) / scale + 0.5;
-            if (0 <= uv.x && uv.x < 1 && 0 <= uv.y && uv.y < 1) FragColor = texture(front, uv);
-            }
-            if (t < 0) {
-            t = (scale + surfacePosition.z) / reflected.z;
-            vec2 uv = 0.5 * (surfacePosition.xy - t * reflected.xy) / scale + 0.5;
-            uv = vec2(1- uv.x, uv.y);
-            if (0 <= uv.x && uv.x < 1 && 0 <= uv.y && uv.y < 1) FragColor = texture(back, uv);
-            }
-            if (f > 0) {
-            vec2 uv = -0.5 * (surfacePosition.yz + f * reflected.yz) / scale + 0.5;
-            uv = vec2(uv.y, 1.0 - uv.x);
-            if (0 <= uv.x && uv.x < 1 && 0 <= uv.y && uv.y < 1) FragColor = texture(left, uv);
-            }
-            if (f < 0) {
-            f = (scale + surfacePosition.x) / reflected.x;
-            vec2 uv = 0.5 * (surfacePosition.yz - f * reflected.yz) / scale + 0.5;
-            uv = vec2(uv.y, uv.x);
-            if (0 <= uv.x && uv.x < 1 && 0 <= uv.y && uv.y < 1) FragColor = texture(right, uv);
-            }
-            if (g > 0) {
-            vec2 uv = -0.5 * (surfacePosition.xz + g * reflected.xz) / scale + 0.5;
-            uv = vec2(1- uv.y, 1- uv.x);
-            if (0 <= uv.x && uv.x < 1 && 0 <= uv.y && uv.y < 1) FragColor = texture(top, uv);
-            }
-            if (g < 0) {
-            g = (scale + surfacePosition.y) / reflected.y;
-            vec2 uv = -0.5 * (surfacePosition.xz - g * reflected.xz) / scale + 0.5;
-            uv = vec2(uv.y, 1- uv.x);
-            if (0 <= uv.x && uv.x < 1 && 0 <= uv.y && uv.y < 1) FragColor = texture(bottom, uv);
-            }
-            }";
+                vec3 incident = normalize(surfacePosition - CameraPosition);
+                vec3 reflected = reflect(incident, normalize(surfacePosition));
+    
+                float t = (scale - surfacePosition.z) / reflected.z;
+                FragColor = vec4(0, 0, 0, 0);
 
-            public ReflectionShading(GlGraphic graphic, GlTextureHandle[] textures, float scale)
-            : base(
-            "uniform",
-            graphic,
-            VERTEX_SHADER,
-            FRAGMENT_SHADER,
-            new GlNamedTextureShadingAspect("left", textures[0]),
-            new GlNamedTextureShadingAspect("right", textures[1]),
-            new GlNamedTextureShadingAspect("top", textures[2]),
-            new GlNamedTextureShadingAspect("bottom", textures[3]),
-            new GlNamedTextureShadingAspect("front", textures[4]),
-            new GlNamedTextureShadingAspect("back", textures[5]))
-            {
-            DoInContext(() => Set("scale", scale));
+        </code>
+        <section> Now we can start calculating where in the texture we need to lookup the image data. for this a simple calculation using the
+            value of t with the reflected vector along with the surface position we can locate the exact spot where the reflection vec3 hits the skybox.
+            As the skybox is scaled in the program we need account for the scale in this calculation leading to the vec2 value 'uv'. This vec2 represents
+            the x and y location of the texture of where we need to read the image data.
+            Lastly slight adjustments must be made when the z value moves into the negative which would mean the reflection is on the back of the sphere
+            (as long as the sphere remains centered on (0,0,0)). For this surfacePosition.z is negative so instead of subtracting we now add it.
+            The next change is that we now subtract the t * reflected value as well as the manipulation of the uv value that resulted. This manipulation
+            must be done according to what the reflection looks like when loading up the program. How it looks up the image data can be rotated using this
+            manipulation. Another manipulation to rotate in the other direction can also be done by subtracting uv.y from 1.
+        </section>
+        <code>
+            if (t > 0) {
+                vec2 uv = 0.5 * (surfacePosition.xy + t * reflected.xy) / scale + 0.5;
+                if (0 <= uv.x && uv.x < 1 && 0 <= uv.y && uv.y < 1) FragColor = texture(front, uv);
             }
+
+            if (t < 0) {
+                t = (scale + surfacePosition.z) / reflected.z;
+                vec2 uv = 0.5 * (surfacePosition.xy - t * reflected.xy) / scale + 0.5;
+                uv = vec2(1- uv.x, uv.y);
+                if (0 <= uv.x && uv.x < 1 && 0 <= uv.y && uv.y < 1) FragColor = texture(back, uv);
+            } 
+        }";
+
+        </code>
+        <section> The final step in the programming of this shader is to define the actual ReflectionShading constructor correctly.
+            Important here is that we define the textures as a GlNamedTextureShadingAspect along with their names front and back to be used
+            in the shader as done in the previous step. With this step we have completed the shader and can move on to creating the sphere.
+        </section>
+        <code>
+            public ReflectionShading(GlGraphic graphic, GlTextureHandle[] textures, float scale) : base(
+                "uniform",
+                graphic,
+                VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new GlNamedTextureShadingAspect("front", textures[0]),
+                new GlNamedTextureShadingAspect("back", textures[1]))
+                {
+                    DoInContext(() => Set("scale", scale));
+                } 
             }
         </code>
         <section>All that's missing now is the Sphere, so let's create it. Initially, we create a new Shading using our
-        ReflectionShading. Then we create a Surface using the Sphere attributes and return the Visual.</section>
+            ReflectionShading and giving it the graphic along with the textures for the 6 sides of the skybox as well as the scaling of the skybox.
+            Like any other object we require its positions, triangles and uvs. After getting these from the Sphere class we can combine them to create the
+            geometry of the sphere and then add the shading using the graphic.CreateSurface() method. Lastly our function should return a visual so that
+            we can add it to the scene.
+        </section>
         <code>
-            private VisualPart GetSphere(Graphic graphic, GlTextureHandle[] textures, float z)
+            private VisualPart GetSphere(Graphic graphic, GlTextureHandle[] textures, float scale)
             {
                 // Create sphere shading
-                var shading = new ReflectionShading((GlGraphic)graphic, textures, z);
+                var shading = new ReflectionShading((GlGraphic)graphic, textures, scale);
     
                 // Set up sphere geometry
                 var positions = Sphere.GetPositions(20, 20);
@@ -319,17 +304,19 @@
                 return graphic.CreateVisual("sphere", surface);
             }
         </code>
-        <section>In the constructor we can then create a new Sphere using our method. For this we create an array of all
-            Cube textures by using the out value of the previously created Faces. Then we create the sphere. It requires
-        the textures, such that the shader knows what to reflect.</section>
+        <section>In the constructor we can now create a new Sphere using our GetSphere method. The textures we get from the getFace() functions
+            created earlier. We had purposefully created the textures as an outvalue in addition to the visuals of the faces so that we can now
+            use the textures as an argument. For this purpose we create an array and call the GetSphere() function.
+        </section>
         <code>
             GlTextureHandle[] textures = [backTexture, rightTexture, topTexture, bottomTexture, frontTexture, leftTexture];
             var sphere = GetSphere(graphic, textures, Scale);
         </code>
-        <section>Lastly add the sphere to the foreach, such that it is addded to the scene: </section>
+        <section>Lastly we can add the sphere to the foreach, such that it is added to the scene and adjust the scale for a more optimal reflection
+            result: </section>
         <code>
             sphere
-                .Scale(Scale / 4)
+            .Scale(Scale / 4)
         </code>
     </article>
 </main>

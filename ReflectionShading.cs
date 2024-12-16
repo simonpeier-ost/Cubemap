@@ -76,8 +76,7 @@ void main()
     }
 }";
 
-    public ReflectionShading(GlGraphic graphic, GlTextureHandle[] textures, float scale) 
-        : base(
+    public ReflectionShading(GlGraphic graphic, GlTextureHandle[] textures, float scale) : base(
             "uniform", 
             graphic, 
             VERTEX_SHADER, 

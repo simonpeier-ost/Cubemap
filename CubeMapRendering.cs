@@ -32,33 +32,30 @@ public class CubeMapRendering : Rendering
         imageBottom.Mutate(context => context.Flip(FlipMode.Vertical));
 
         // The images and textures are manipulated to allow any CubeMap image like assets/CanyonCubeMap.jpeg to be used.
-        Face[] faces = GetFacesOfCube(Cube.Positions, Cube.Triangles);
-        var faceFront = GetFace(graphic, imageLeft, faces[0], "left", out var frontTexture);
-        var faceBack = GetFace(graphic, imageFront, faces[1], "front", out var backTexture);
-        var faceLeft = GetFace(graphic, imageRight, faces[2], "right", out var leftTexture);
-        var faceRight = GetFace(graphic, imageBack, faces[3], "back", out var rightTexture);
+        Face[] faces = GetFacesOfCube();
+        var faceLeft = GetFace(graphic, imageLeft, faces[0], "left", out var frontTexture);
+        var faceFront = GetFace(graphic, imageFront, faces[1], "front", out var backTexture);
+        var faceRight = GetFace(graphic, imageRight, faces[2], "right", out var leftTexture);
+        var faceBack = GetFace(graphic, imageBack, faces[3], "back", out var rightTexture);
         var faceTop = GetFace(graphic, imageTop, faces[4], "top", out var topTexture);
         var faceBottom = GetFace(graphic, imageBottom, faces[5], "bottom", out var bottomTexture);
 
         GlTextureHandle[] textures = [backTexture, rightTexture, topTexture, bottomTexture, frontTexture, leftTexture];
         var sphere = GetSphere(graphic, textures, Scale);
 
-        Console.WriteLine("CUBE TEXTUREUV");
-        Console.WriteLine(string.Join(", ", Cube.TextureUv));
-
         var cubePosition = new Point3(0, 0, 0);
         foreach (var face in new[]
                  {
-                     faceFront
-                         .Scale(Scale)
-                         .Translate(cubePosition.Vector),
-                     faceBack
-                         .Scale(Scale)
-                         .Translate(cubePosition.Vector),
                      faceLeft
                          .Scale(Scale)
                          .Translate(cubePosition.Vector),
+                     faceFront
+                         .Scale(Scale)
+                         .Translate(cubePosition.Vector),
                      faceRight
+                         .Scale(Scale)
+                         .Translate(cubePosition.Vector),
+                     faceBack
                          .Scale(Scale)
                          .Translate(cubePosition.Vector),
                      faceTop
@@ -80,8 +77,8 @@ public class CubeMapRendering : Rendering
     {
         // Create Texture
         texture = (GlTextureHandle)Graphic.CreateTexture(image);
-        var material = new ColorTextureMaterial(1f, 1f, texture);
         // Create face shading
+        var material = new ColorTextureMaterial(1f, 0f, texture);
         var shading = graphic.CreateShading("emissive", material, [new AmbientLight(new Color3(1f, 1f, 1f))]);
 
         // Set up face geometry
@@ -110,9 +107,7 @@ public class CubeMapRendering : Rendering
         }
 
         var geometry = Geometry.CreateWithUv(positions, positions, textureUvs, triangles);
-
-        var surface = graphic.CreateSurface(shading, geometry);
-        var visual = graphic.CreateVisual(name, surface);
+        var visual = graphic.CreateVisual(name, graphic.CreateSurface(shading, geometry));
         return visual;
     }
 
@@ -131,9 +126,12 @@ public class CubeMapRendering : Rendering
         return graphic.CreateVisual("sphere", surface);
     }
 
-    private Face[] GetFacesOfCube(float[] positions, ushort[] triangles)
+    private Face[] GetFacesOfCube()
     {
+        var positions = Cube.Positions;
+        var triangles = Cube.Triangles;
         Face[] faces = new Face[6];
+
         for (int faceIndex = 0; faceIndex < 6; faceIndex++)
         {
             float[] facePositions = new float[12];
