@@ -25,8 +25,7 @@
         <h2>Create a Cubemap</h2>
         <section>A cubemap is a combination of a cubemap texture and a cube. The texture is mapped in a way that when the
         viewer is inside the cube it appears as if he is in an environment (even though he is only inside a 360° image). </section>
-        <section>To create such a cubemap, we start by creating a new Rendering. In the constructor, the first step is loading the images. Make
-            sure you have downloaded them (from the resources). .
+        <section>To create such a cubemap, we start by creating a new Rendering. In the constructor, the first step is loading the images.
             The loading of the front image is already implemented. Your task is to implement loading the rest of the images. Note, that you might have to
             flip and/or rotate the images:
         </section>
@@ -72,7 +71,7 @@
             }
 
         </code>
-        <section>Now we can extract the Faces out of the Cube Element. For each face we
+        <section>Now we can extract the Faces out of the Cube Element. For each face we:
             <ul>
                 <li>Extract the positions (x,y,z) of each of the four vertices (4*3=12).</li>
                 <li>Extract the triangles. A Face consists of two triangles, each having three points (2*3=6).</li>
@@ -169,7 +168,7 @@
                 }
             }
         </code>
-        <section>When rendering you should now see an empty environment:</section>
+        <section>When rendering you should now see the environment of the images:</section>
         <img src="resources/RenderingIncomplete.png" alt="Reflection of light." width="600px">
 
 
@@ -205,7 +204,7 @@
         </section>
         <img src="resources/LightReflection.png" alt="Reflection of light." width="600px">
         <section>Lastly we need to subtract the surfacePositions separate coordinates and divide through the reflected vectors, here shown on the z axis
-            leading to the value of 't'
+            leading to the value of 't' which in this case represents how far the reflecting vector travels on the Z axis.
         </section>
         <code>
             private const string FRAGMENT_SHADER = @"
@@ -233,11 +232,14 @@
             As the skybox is scaled in the program we need account for the scale in this calculation leading to the vec2 value 'uv'. This vec2 represents
             the x and y location of the texture of where we need to read the image data. Furthermore the uv must represent a value between 0 and 1 which is why
             we scale it down to (1-;1) and then half it (-0.5;0.5) and finally add 0.5 (0;1).
+            <br><br>
             Lastly slight adjustments must be made when the z value moves into the negative which would mean the reflection is on the back of the sphere
             (as long as the sphere remains centered on (0,0,0)). For this surfacePosition.z is negative so instead of subtracting we now add it.
             The next change is that we now subtract the t * reflected value as well as the manipulation of the uv value that resulted. This manipulation
             must be done according to what the reflection looks like when loading up the program. How it looks up the image data can be rotated using this
             manipulation. Another manipulation to rotate in the other direction can also be done by subtracting uv.y from 1.
+            <br><br>
+            This example only shows the rendering for the back and front. You will have to add the other sides using the x and y axis.
         </section>
         <code>
             if (t > 0) {
