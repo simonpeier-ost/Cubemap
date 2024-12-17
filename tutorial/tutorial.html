@@ -11,20 +11,22 @@
         <h1><sem-text>EduGraf</sem-text> Tutorial: Cubemap Environment Mapping</h1>
         <h2>Resources</h2>
         <ul>
-            <li><a href="../assets/CanyonCubeMap.jpeg">Cubemap image of Canyon</a></li>
-            <li><a href="../assets/FieldCubeMap.jpeg">Cubemap image of Field</a></li>
-            <li><a href="../assets">Path to extracted images</a></li>
+            <li><a href="resources/CanyonCubeMap.jpeg">Cubemap image of Canyon</a></li>
+            <li><a href="resources/FieldCubeMap.jpeg">Cubemap image of Field</a></li>
+            <li><a href="resources/CubeMap-Images.zip">Extracted images</a></li>
         </ul>
 
         <h2>Introduction</h2>
-        <section>In this tutorial, we learn how to create a Cubemap with a Sphere inside, that reflects the environment.
+        <section>In this tutorial, we learn how to create a Cubemap with a Sphere inside that reflects the environment.
             We start by creating a Cubemap and mapping the textures onto it correctly. Then we add a Sphere and create a
             custom Shader for it, which reflects the surrounding environment, in our case the CubeMap.
         </section>
 
         <h2>Create a Cubemap</h2>
-        <section>We start by creating a new Rendering. In the constructor, the first step is loading the images. Make
-            sure you have downloaded them. in this example we use the FieldMap (images under /assets/FieldCubeMap/...).
+        <section>A cubemap is a combination of a cubemap texture and a cube. The texture is mapped in a way that when the
+        viewer is inside the cube it appears as if he is in an environment (even though he is only inside a 360° image). </section>
+        <section>To create such a cubemap, we start by creating a new Rendering. In the constructor, the first step is loading the images. Make
+            sure you have downloaded them (from the resources). .
             The loading of the front image is already implemented. Your task is to implement loading the rest of the images. Note, that you might have to
             flip and/or rotate the images:
         </section>
@@ -128,39 +130,22 @@
                 return visual;
             }
         </code>
-        <section>Next we can use the created functions to actually display the Cube. First we create the Faces and then 
-            add them to the Scene. Add the following to the bottom of the constructor: 
+        <section>Next we can use the previously created methods to actually display the Cube. First we create the Faces 
+            and then add them to the Scene. One face is already implemented, you have to implement the remaining faces 
+            and add them to the scene: 
         </section>
         <code>
             Face[] faces = GetFacesOfCube(Cube.Positions, Cube.Triangles);
-            var faceFront = GetFace(graphic, imageLeft, faces[0], "left", out var frontTexture);
-            var faceBack = GetFace(graphic, imageFront, faces[1], "front", out var backTexture);
-            var faceLeft = GetFace(graphic, imageRight, faces[2], "right", out var leftTexture);
-            var faceRight = GetFace(graphic, imageBack, faces[3], "back", out var rightTexture);
-            var faceTop = GetFace(graphic, imageTop, faces[4], "top", out var topTexture);
-            var faceBottom = GetFace(graphic, imageBottom, faces[5], "bottom", out var bottomTexture);
+            var faceLeft = GetFace(graphic, imageLeft, faces[0], "left", out var frontTexture);
+            //TODO: Create remaining faces
 
             var cubePosition = new Point3(0, 0, 0);
             foreach (var face in new[]
                      {
-                         faceFront
-                             .Scale(Scale)
-                             .Translate(cubePosition.Vector),
-                         faceBack
-                             .Scale(Scale)
-                             .Translate(cubePosition.Vector),
                          faceLeft
                              .Scale(Scale)
                              .Translate(cubePosition.Vector),
-                         faceRight
-                             .Scale(Scale)
-                             .Translate(cubePosition.Vector),
-                         faceTop
-                             .Scale(Scale)
-                             .Translate(cubePosition.Vector),
-                         faceBottom
-                             .Scale(Scale)
-                             .Translate(cubePosition.Vector)
+                         // TODO: Add remaining faces to scene
                      })
             {
                 Scene.Add(face);
@@ -168,7 +153,7 @@
         </code>
         
         <h2>Display the rendering</h2>
-        <section>To display the rendering we create a new Class containing the Main() function. The camera is positioned
+        <section>To display the rendering we create a new Class containing the Main() method. The camera is positioned
             slightly offset to the center, such that the Sphere will be visible. The size of the window can be adjusted 
             if desired.</section>
         <code>
@@ -184,6 +169,9 @@
                 }
             }
         </code>
+        <section>When rendering you should now see an empty environment:</section>
+        <img src="resources/RenderingIncomplete.png" alt="Reflection of light." width="600px">
+
 
         <h2>Create a reflecting sphere using shaders</h2>
         <section>Now we are ready to create the sphere. For that we first need to create the Shader.
@@ -215,7 +203,7 @@
             To calculate the reflection vector we utilise the reflect function and provide it with the vector from the camera to the surfacePosition
             and the normal vector on that exact position.
         </section>
-        <img src="images/LightReflection.png" alt="Reflection of light." width="600px">
+        <img src="resources/LightReflection.png" alt="Reflection of light." width="600px">
         <section>Lastly we need to subtract the surfacePositions separate coordinates and divide through the reflected vectors, here shown on the z axis
             leading to the value of 't'
         </section>
@@ -319,6 +307,18 @@
             sphere
             .Scale(Scale / 4)
         </code>
+        
+        <h2>Final result</h2>
+        <section>If the rendering now looks similar to the following image, we have successfully implemented the Cubemap 
+        with Reflection Shading.</section>
+        <img src="resources/RenderingComplete.png" alt="Reflection of light." width="600px">
+        
+        <section>The complete solution can be found in the following zip:
+            <ul>
+                <li><a href="resources/CubeMapSolution.zip">Cubemap Solution</a></li>
+    
+            </ul>
+        </section>
     </article>
 </main>
 </body>
