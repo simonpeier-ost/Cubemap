@@ -243,7 +243,8 @@
         <section> Now we can start calculating where in the texture we need to lookup the image data. for this a simple calculation using the
             value of t with the reflected vector along with the surface position we can locate the exact spot where the reflection vec3 hits the skybox.
             As the skybox is scaled in the program we need account for the scale in this calculation leading to the vec2 value 'uv'. This vec2 represents
-            the x and y location of the texture of where we need to read the image data.
+            the x and y location of the texture of where we need to read the image data. Furthermore the uv must represent a value between 0 and 1 which is why
+            we scale it down to (1-;1) and then half it (-0.5;0.5) and finally add 0.5 (0;1).
             Lastly slight adjustments must be made when the z value moves into the negative which would mean the reflection is on the back of the sphere
             (as long as the sphere remains centered on (0,0,0)). For this surfacePosition.z is negative so instead of subtracting we now add it.
             The next change is that we now subtract the t * reflected value as well as the manipulation of the uv value that resulted. This manipulation
