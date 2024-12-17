@@ -65,13 +65,13 @@ void main()
     }
     if (g > 0) {
       vec2 uv = -0.5 * (surfacePosition.xz + g * reflected.xz) / scale + 0.5;
-      uv = vec2(1- uv.y, 1- uv.x);
+      uv = vec2(1- uv.x, uv.y);
       if (0 <= uv.x && uv.x < 1 && 0 <= uv.y && uv.y < 1) FragColor = texture(top, uv);
     } 
     if (g < 0) {
       g = (scale + surfacePosition.y) / reflected.y;
       vec2 uv = -0.5 * (surfacePosition.xz - g * reflected.xz) / scale + 0.5;
-      uv = vec2(uv.y, 1- uv.x);
+      uv = vec2(uv.x, uv.y);
       if (0 <= uv.x && uv.x < 1 && 0 <= uv.y && uv.y < 1) FragColor = texture(bottom, uv);
     }
 }";

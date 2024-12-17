@@ -27,9 +27,12 @@ public class CubeMapRendering : Rendering
         using var imageRight = Image.Load<Rgba32>("assets/" + _imageName + "CubeMap/" + _imageName + "Right.png");
         imageRight.Mutate(context => context.Flip(FlipMode.Vertical));
         using var imageTop = Image.Load<Rgba32>("assets/" + _imageName + "CubeMap/" + _imageName + "Top.png");
-        imageTop.Mutate(context => context.Flip(FlipMode.Horizontal));
+        imageTop.Mutate(context => context.Flip(FlipMode.Vertical));
+        imageTop.Mutate(context => context.Rotate(RotateMode.Rotate90));
         using var imageBottom = Image.Load<Rgba32>("assets/" + _imageName + "CubeMap/" + _imageName + "Bottom.png");
         imageBottom.Mutate(context => context.Flip(FlipMode.Vertical));
+        imageBottom.Mutate(context => context.Rotate(RotateMode.Rotate90));
+
 
         // The images and textures are manipulated to allow any CubeMap image like assets/CanyonCubeMap.jpeg to be used.
         Face[] faces = GetFacesOfCube();
@@ -85,27 +88,7 @@ public class CubeMapRendering : Rendering
         var positions = face.Positions;
         var triangles = face.Triangles;
         var textureUvs = face.TextureUv;
-        if (name == "top")
-        {
-            textureUvs =
-            [
-                1.0f, 0.0f,
-                1.0f, 1.0f,
-                0.0f, 1.0f,
-                0.0f, 0.0f
-            ];
-        }
-        else if (name == "bottom")
-        {
-            textureUvs =
-            [
-                0.0f, 1.0f,
-                0.0f, 0.0f,
-                1.0f, 0.0f,
-                1.0f, 1.0f
-            ];
-        }
-
+        
         var geometry = Geometry.CreateWithUv(positions, positions, textureUvs, triangles);
         var visual = graphic.CreateVisual(name, graphic.CreateSurface(shading, geometry));
         return visual;
